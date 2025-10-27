@@ -1,0 +1,158 @@
+
+<form id="targetForm" action="{{request.path}}" method="post">
+    <input type="hidden" name="action" value="{{ action }}">
+    {% if id %}
+    <input type="hidden" name="id" value="{{ id }}">
+    {% endif %}
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% for field in form %}
+        <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">
+                {{ field.label }}
+            </label>
+            
+            {{ field }}
+            
+            {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+            {% endif %}
+
+                <div class="text-danger small mt-1" id="error_{{ field.name }}">
+                </div>
+        </div>
+    {% endfor %}
+
+    <div class="modal-footer">
+    <a type="button" 
+            href="javascript:void(0)"
+            id="submitBtn"  class="btn btn-primary" >
+        <i class="fa-solid fa-floppy-disk"></i> Guardar y Cerrar
+    </a>
+
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        Cancelar
+    </button>
+</div>
+</form>
+<script>
+$(document).ready(function() {
+    $('.select2').select2({
+        width: '100%',
+        dropdownParent: $("#miModalEstandar")
+    });
+    $('#submitBtn').on('click', function(event) {
+    
+        // Evita que el formulario se envíe de la manera tradicional
+        event.preventDefault(); 
+        
+        const $form = $('#targetForm'); 
+        const url = $form.attr('action') || window.location.href;
+        
+        // 1. 🌟 CORRECCIÓN CLAVE: Usar FormData para incluir archivos 🌟
+        // Se crea un objeto FormData a partir del elemento DOM nativo ($form[0])
+        const formData = new FormData($form[0]); 
+
+        // 2. Obtiene el CSRF Token (aunque FormData a menudo lo incluye, es buena práctica tenerlo)
+        const csrftoken = $form.find('input[name="csrfmiddlewaretoken"]').val();
+        
+        // 3. Envía la solicitud POST usando jQuery.ajax()
+        $.ajax({
+            type: 'POST',
+            url: url,
+            
+            // 🌟 CORRECCIÓN 2: Enviar el objeto FormData
+            data: formData, 
+            
+            // 🌟 CORRECCIÓN 3: Le dice a jQuery que NO procese los datos (necesario para FormData)
+            processData: false, 
+            
+            // 🌟 CORRECCIÓN 4: Le dice a jQuery que NO establezca Content-Type 
+            // (FormData lo hace automáticamente como multipart/form-data)
+            contentType: false, 
+            
+            headers: {
+                'X-CSRFToken': csrftoken, // Incluye el CSRF token
+            },
+            dataType: 'json', 
+            
+            success: function(response) {
+                if (response.result) {
+                    Swal.fire({
+                        title: "¡Éxito!",
+                        text: response.message || "Guardado correctamente.",
+                        icon: "success", 
+                        showCancelButton: false,
+                        confirmButtonText: "Aceptar"
+                    }).then((result) => {
+                        // Redirección si se confirma el éxito
+                        if (result.isConfirmed) {
+                            // Redirige a la URL proporcionada por el servidor o a la actual
+                            window.location.href = response.to || window.location.href;
+                        }
+                    });
+                } else {
+                    if (response.form) {
+                        $('#targetForm .error-mensaje').remove(); // Limpia errores previos
+                        const errors = response.form;
+
+                        // Recorre los errores del formulario
+                        for (const fieldName in errors) {
+                            const errorList = errors[fieldName]; 
+                            
+                            // Asumiendo que cada elemento de errorList es un objeto { message: "...", code: "..." }
+                            if (errorList && errorList.length > 0) {
+                                const primerMensaje = errorList[0].message; // ✅ ACCEDE A LA PROPIEDAD 'message'
+                                
+                                // ... (Lógica para encontrar el campo de entrada y mostrar 'primerMensaje')
+                                const fieldInput = document.querySelector(`[name="${fieldName}"]`);
+                                if (fieldInput) {
+                                    const errorElement = document.createElement('span');
+                                    errorElement.className = 'error-mensaje text-danger';
+                                    errorElement.textContent = primerMensaje; // 👈 Muestra la cadena, no el objeto
+                                    fieldInput.parentNode.insertBefore(errorElement, fieldInput.nextSibling);
+                                }
+                            }
+                        }
+    
+                    } else {
+                        Swal.fire("Error", response.message || 'Error desconocido al guardar.', "error");
+                    }
+                }
+            },
+            
+            error: function(xhr, status, error) {
+                // Manejo de Errores detallado
+                console.error("Error al enviar el formulario:", status, error);
+                
+                try {
+                    const errorData = JSON.parse(xhr.responseText);
+                    console.error("Detalles del error de Django:", errorData);
+                    
+                    // Mostrar un mensaje de error más específico
+                    const errorMessage = errorData.message || errorData.mensaje || 'Ocurrió un error en el servidor.';
+                    Swal.fire("Error en la Petición", errorMessage, "error");
+                    
+                } catch (e) {
+                    Swal.fire("Error Desconocido", "Ocurrió un error al procesar la solicitud.", "error");
+                }
+            }
+        });
+    });
+});
+
+</script>
+
+<style>
+    .select2-container--open {
+        z-index: 1060; 
+    }
+</style>

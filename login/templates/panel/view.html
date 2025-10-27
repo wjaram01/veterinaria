@@ -1,0 +1,54 @@
+{% extends "panelbase.html" %}
+{% load static %}
+{% block head %}
+    <style>
+        .card-img-top {
+            width: 100%;
+            height: 200px;
+            object-fit: cover; 
+        }
+        .card1:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            $('.card').click(function() {
+                var url = $(this).data('url');
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+        });
+    </script>
+{% endblock %}
+{% block content %}
+<div class="container" style="margin-top: 80px;">
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Bienvenido al {{ persona.nombre_completo }}</h1>
+            <p>Esta es la página principal del panel de usuario.</p>
+        </div>
+    </div>
+</div>
+<div class="container my-5">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for mod in modulos %}
+            <div class="col">
+                <div class="card card1 h-100 shadow-sm" data-url="{{ mod.url }}">
+                    <img src="{% static mod.img %}" class="card-img-top" alt="Descripción de la Imagen">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ mod.title }}</h5>
+                        <p class="card-text">{{ mod.descripcion }}</p>
+                    </div>
+                    <div class="card-footer">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+</div>
+{% endblock %}

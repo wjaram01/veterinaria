@@ -1,0 +1,98 @@
+{% extends "panelbase.html" %}
+{% load static %}
+{% block head %}
+    <style>
+        .card-img-top {
+            width: 100%;
+            height: 200px;
+            object-fit: cover; 
+        }
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        $(document).ready(function() {
+    
+        });
+    </script>
+{% endblock %}
+{% block content %}
+    <div class="container my-5 mt-5 pt-4">
+        <div class="row">
+            <div class="col-12 text-end">
+                <a href="/" class="btn btn-secondary mb-3">
+                    <i class="fa fa-arrow-left"></i> Atras
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <h1 class="mb-4">Gestión de mascotas</h1>
+        <div class="row mb-3">
+                <div class="col-12">
+                   .
+                </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Foto</th>
+                        <th>Dueño</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaDatosBody">
+                    {% for l in page_obj %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ l.nombre }}</td>
+                        <td>
+                            <p><b>Especie:</b> {{ l.especie }}</p>
+                            <p><b>Raza:</b> {{ l.raza }}</p>
+                            <p><b>Edad:</b> {{ l.edad }}</p>
+                        </td>
+                        <td>
+                            {% if l.archivo %}
+                                 
+                                    <img 
+                                        src="{{ l.archivo.url }}" 
+                                        alt="Ver {{ l.nombre }}" 
+                                        style="width: 150px; height: 100px; object-fit: cover;" 
+                                    >
+    
+                            {% else %}
+                                No hay foto
+                            {% endif %}
+                        <td>
+                            <p><b>Nombres:</b> {{ l.cliente.persona.nombre_completo }}</p>
+                            <p><b>Email:</b> {{ l.cliente.persona.email }}</p>
+                            <p><b>Teléfono:</b> {{ l.cliente.persona.telefono }}</p>
+                            <p><b>Dirección:</b> {{ l.cliente.persona.direccion }}</p>
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)" onclick="get_formModal('{{request.path}}', 'Editar Cliente', 'editmascota', '{{ l.id }}')" class="btn btn-warning btn-sm">
+                                <i class="fa-solid fa-pencil"></i> Editar
+                            </a>
+                            <a href="javascript:void(0)" onclick="confirmarYPostear('{{request.path}}', '{{ l.id }}', '¿Estás seguro de que deseas eliminar esta mascota?', 'Mascota eliminada con éxito.','delmascota')" class="btn btn-danger btn-sm">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center">No hay datos para mostrar.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include 'paginator.html' %}
+{% endblock %}

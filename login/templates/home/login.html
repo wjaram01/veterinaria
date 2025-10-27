@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+ {% block head %}
+<script>
+$(document).ready(function() {
+    $('#submitBtn').on('click', function(event) {
+        // Evita que el formulario se envíe de la manera tradicional
+        event.preventDefault(); 
+        
+        const $form = $('#targetForm'); // El formulario actual
+        const url = $form.attr('action') || window.location.href;
+        
+        // 2. Obtiene el CSRF Token de un campo oculto del formulario
+        const csrftoken = $form.find('input[name="csrfmiddlewaretoken"]').val();
+        
+
+        // 3. Envía la solicitud POST usando jQuery.ajax()
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: $form.serialize(), // Serializa todos los datos del formulario (como un objeto Form Data simple)
+            headers: {
+                // Incluye el CSRF token en los encabezados
+                'X-CSRFToken': csrftoken,
+            },
+            dataType: 'json', // Esperamos que la vista de Django devuelva JSON
+            
+            success: function(response) {
+                if (response.result) {
+                    window.location.href = response.to || window.location.href;
+                } else {
+                    // Manejo de errores específicos devueltos por el servidor
+                    Swal.fire("Error", response.message || 'Error desconocido del servidor.', "error");
+                }
+            },
+            
+            error: function(xhr, status, error) {
+                // 5. Manejo de Errores
+                console.error("Error al enviar el formulario:", status, error);
+                
+                // Intenta parsear el error JSON si está disponible
+                try {
+                    const errorData = JSON.parse(xhr.responseText);
+                    console.error("Detalles del error de Django:", errorData);
+                    alert(`Error: ${errorData.mensaje || 'Error desconocido del servidor.'}`);
+                } catch (e) {
+                    alert("Ocurrió un error al procesar la solicitud.");
+                }
+            }
+        });
+    });
+});
+</script>
+ <style>
+    .cream-color {
+        color: #af9858ff;
+    }
+    .dark-cream-color {
+        color: #74644bff;
+    }
+    .bg-cream {
+        background-color: #ccb26cff;
+    }
+    .bg-dark-cream {
+        background-color: #695b42ff;
+    }
+    .bg-light-cream {
+        background-color: #f2e6d9ff;
+    }
+        .myShadowBorder {
+        
+        border-radius: 10px; 
+        
+        box-shadow: 0 0 20px 10px rgba(255, 255, 255, 1); 
+    }
+    .btn:hover {
+        color: black !important;
+        border-color: black !important;
+    }
+</style>
+ {% endblock %}
+{% block content %}
+<div class="row justify-content-center text-center g-2 mt-4">
+    <div class="col-1">
+        <a href="/" class="navbar-brand"><img src="https://svgsilh.com/png-512/1084899.png" alt="Logo" style="width: 60px; height: 60px;"></a>
+    </div>
+    <div class="col-11">
+        <a class="btn btn-md px-4 bg-cream" href="{{request.path}}?action=login" style="border-radius: 10px; box-shadow: 0 0 20px 10px rgba(255, 255, 255, 1); width: 30%; color: white;">Iniciar Sesion</a>
+        <a class="btn btn-md px-4 ms-4 bg-dark-cream" href="{{request.path}}?action=register" style="border-radius: 10px; box-shadow: 0 0 20px 10px rgba(255, 255, 255, 1); width: 30%; color: white;">Registrarse</a>
+    </div>
+</div>
+<div class="row card m-4 p-4 bg-light-cream rounded-3">
+    <div class="col-12 text-center mt-4">
+        <div class="mx-4">
+            <h1 class="dark-cream-color" style="font-size: 2rem;">Iniciar Sesión</h1>
+            {% include "formbase.html" %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

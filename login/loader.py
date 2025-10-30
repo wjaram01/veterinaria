@@ -1,6 +1,6 @@
 # mi_app/ml_model/loader.py
 import torch
-from transformers import AutoModelForImageClassification, AutoImageProcessor
+from transformers import AutoModelForImageClassification, AutoImageProcessor, ViTImageProcessor, ViTForImageClassification
 from PIL import Image
 import os
 import sys
@@ -29,11 +29,11 @@ def load_mofr_model():
             
             # 1. Cargar el Preprocesador de Imágenes
             # Esto carga la configuración de normalización, redimensionamiento, etc.
-            PREPROCESSOR = AutoImageProcessor.from_pretrained(MODEL_PATH) 
+            PREPROCESSOR = ViTImageProcessor.from_pretrained(MODEL_PATH)
             
             # 2. Cargar el Modelo para Clasificación de Imágenes
             # AutoModelForImageClassification es ideal para ViT/clasificación
-            MODEL = AutoModelForImageClassification.from_pretrained(
+            MODEL = ViTForImageClassification.from_pretrained(
                 MODEL_PATH,
                 device_map='auto'
             )

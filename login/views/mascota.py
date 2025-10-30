@@ -84,11 +84,17 @@ def view(request):
                     
                     # Obtener el nombre de la clase usando el mapeo del modelo
                     class_name = model.config.id2label[predicted_class_idx]
+
+                    image_file.seek(0) 
+                    contenido_binario = image_file.read()
+                    cadena_base64 = base64.b64encode(contenido_binario).decode('utf-8')
+                    mime_type = "image/png"
+                    
                     
                     result = {
                         'prediccion': class_name,
                         'confianza': f'{confidence_score * 100:.2f}%',
-                        'imagen': image_url
+                        'imagen': f"data:{mime_type};base64,{cadena_base64}"
                     }
                     return JsonResponse({'result': True, 'message': 'Mascota editada exitosamente', 'data': result })
                 else:

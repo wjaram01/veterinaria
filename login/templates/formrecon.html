@@ -85,6 +85,12 @@ $(document).ready(function() {
                 if (response.result) {
                     $('#confianza').text(response.data.confianza)
                     $('#prediccion').text(response.data.prediccion)
+                    $('#image').html(`<img 
+                                class="imagen-base64" 
+                                src="${response.data.imagen}"
+                                width="500px"
+                                height="500px"
+                                alt="Descripción de la imagen Base64">`)
                 } else {
                     if (response.form) {
                         // Limpia errores previos

@@ -175,6 +175,7 @@ def view(request):
                     page_number = request.GET.get('page')
                     page_obj = paginator.get_page(page_number)
                     data['page_obj'] = page_obj
+                    data['back'] = '/config'
                     return render(request, 'config/doctor.html', data)
                 except Exception as e:
                     pass
@@ -184,5 +185,6 @@ def view(request):
             data['title'] = 'Administración del sistema'
             data['modulos'] = [
                 {'title': 'Gestión de doctores', 'descripcion': 'En esta seccion encontrara el listado de doctores', 'url': '/config?action=doctores', 'img': 'images/persons.png'},
-            ]   
+            ]
+            data['back'] = '/panel'
             return render(request, 'config/view.html', data)

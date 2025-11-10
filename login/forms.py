@@ -204,7 +204,7 @@ class PersonaDoctorForm(forms.Form):
 
 class ReconocimientoForm(forms.Form):
     archivo = forms.ImageField(
-            label='Foto de Perfil/Credencial',
+            label='Subir imagen',
             required=False,  # Hazlo opcional si lo deseas
             widget=forms.FileInput(attrs={
                 'class': 'form-control-file col-12',

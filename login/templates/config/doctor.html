@@ -20,16 +20,6 @@
     </script>
 {% endblock %}
 {% block content %}
-    <div class="container my-5 mt-5 pt-4">
-        <div class="row">
-            <div class="col-12 text-end">
-                <a href="/panel" class="btn btn-secondary mb-3">
-                    <i class="fa fa-arrow-left"></i> Atras
-                </a>
-            </div>
-        </div>
-    </div>
-
     <div class="container my-5">
         <h1 class="mb-4">Gestión de doctores</h1>
         <div class="row mb-3">
@@ -38,7 +28,7 @@
             <i class="fa-solid fa-plus"></i> Agregar Nuevo
              </a>
                                    <a type="button" href="javascript:void(0)" onclick="get_formModal('{{request.path}}', 'Agregar doctor con persona existente', 'addoctorpersonaexist', '')" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#agregarModal">
-            <i class="fa-solid fa-plus"></i> Agregar Nuevo
+            <i class="fa-solid fa-plus"></i> Agregar con persona existente
              </a>
             </div>
             <div class="col-6 text-end">

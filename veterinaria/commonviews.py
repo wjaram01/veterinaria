@@ -11,3 +11,15 @@ def add_data_to_context(request, data):
     if persona: 
         data['doctor'] = doctor = Doctor.objects.filter(persona=persona).first()
     return data
+
+ePredict = {
+    'ringworm' : 'Tiña',
+    'Hypersensitivity' : 'Hipersensibilidad',
+    'mange' : 'Sarna',
+    'Dermatitis' : 'Dermatitis', 
+    'Fungal_infections' : 'Infecciones fúngicas',
+    'Healthy' : 'Sano', 
+    'demodicosis' : 'Demodicosis'
+}
+def get_predict(nombre):
+    return ePredict.get(nombre, 'Desconocido')

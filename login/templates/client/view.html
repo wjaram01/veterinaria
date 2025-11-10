@@ -20,15 +20,6 @@
     </script>
 {% endblock %}
 {% block content %}
-    <div class="container my-5 mt-5 pt-4">
-        <div class="row">
-            <div class="col-12 text-end">
-                <a href="/panel" class="btn btn-secondary mb-3">
-                    <i class="fa fa-arrow-left"></i> Atras
-                </a>
-            </div>
-        </div>
-    </div>
 
     <div class="container my-5">
         <h1 class="mb-4">Gestión de clientes</h1>
@@ -79,9 +70,11 @@
                             <a href="javascript:void(0)" onclick="get_formModal('{{request.path}}', 'Editar Cliente', 'editcliente', '{{ cliente.id }}')" class="btn btn-warning btn-sm">
                                 <i class="fa-solid fa-pencil"></i> Editar
                             </a>
+                            {% if l.has_mascot %}
                             <a href="javascript:void(0)" onclick="confirmarYPostear('{{request.path}}', '{{ cliente.id }}', '¿Estás seguro de que deseas eliminar este cliente?', 'Cliente eliminado con éxito.','delcliente')" class="btn btn-danger btn-sm">
                                 <i class="fa-solid fa-trash"></i> Eliminar
                             </a>
+                            {% endif %}
                             <a href="{{request.path}}?action=mismascotas&id={{ cliente.id }}"  class="btn btn-success btn-sm">
                                 <i class="fas fa-dog"></i> Mascotas
                             </a>

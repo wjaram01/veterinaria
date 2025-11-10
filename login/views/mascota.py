@@ -14,7 +14,7 @@ from django.template import loader
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator
 from django.db.models import Q
-from veterinaria.commonviews import add_data_to_context
+from veterinaria.commonviews import add_data_to_context, get_predict
 from django.contrib import messages
 from ..loader import get_model_and_preprocessor 
 from PIL import Image
@@ -67,6 +67,7 @@ def view(request):
                     if 'archivo' in request.FILES:
                            archivo = request.FILES['archivo']
                     image_file =archivo
+                    if not image_file: raise NameError('Suba una imagen')
                     # Abre el archivo como una imagen PIL
                     img = Image.open(image_file).convert('RGB')
                     image_url = image_file.name # Placeholder para el nombre del archivo
@@ -92,7 +93,7 @@ def view(request):
                     
                     
                     result = {
-                        'prediccion': class_name,
+                        'prediccion': get_predict(class_name),
                         'confianza': f'{confidence_score * 100:.2f}%',
                         'imagen': f"data:{mime_type};base64,{cadena_base64}"
                     }
@@ -139,6 +140,7 @@ def view(request):
                 data['title'] = 'Reconocimiento de enfermedades'
                 data['form'] = ReconocimientoForm()
                 data['action'] = 'testmodel'
+                data['back'] = '/panel'
                 return render(request, 'mascota/recon.html', data)
                 
                 

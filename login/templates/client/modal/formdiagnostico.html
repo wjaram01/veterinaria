@@ -1,10 +1,11 @@
 <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+    <div class="col">
         
         <div class="card m-4 p-4 bg-light-cream rounded-3 shadow-lg">
             <div class="card-body">
                 <form id="targetForm" action="{{request.path}}" method="post">
                     <input type="hidden" name="action" value="{{ action|default:'register' }}">
+                    <input type="hidden" name="id" value="{{ id }}">
                     {% csrf_token %}
                     
                     {% if form.non_field_errors %}
@@ -31,6 +32,7 @@
                                     </div>
                         </div>
                     {% endfor %}
+                    <input type="hidden" id="id_prediccion" name="prediccion" value="">
                     
                     <div class="d-grid mt-4">
                         <a href="javascript:void(0);" id="submitBtn" class="btn btn-md px-4 bg-cream" 
@@ -38,14 +40,32 @@
                             Enviar
                         </a>
                     </div>
+                    <div class="d-grid mt-4">
+                        <a href="javascript:void(0);" id="submitBtn1" class="btn btn-md px-4 bg-cream" 
+                                style="border-radius: 10px; box-shadow: 0 0 20px 10px rgba(255, 255, 255, 1); color: white;">
+                            Guardar.
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+    <div class="row card m-4 p-6 mt-6 p-4 bg-light-cream rounded-3">
+        <div class="col-12 text-center mt-4">
+            <div class="mx-4">
+                <p id="prediccion"><p>
+                <p id="confianza"><p>
+            </div>
+            <div class="row">
+                <div id="image"><div>
+            </div>
+        </div>
+    </div>
 
 <script>
 $(document).ready(function() {
+        $('#submitBtn1').hide()
         $('#submitBtn').on('click', function(event) {
     
         // Evita que el formulario se envíe de la manera tradicional
@@ -85,12 +105,100 @@ $(document).ready(function() {
                 if (response.result) {
                     $('#confianza').text(`Confianza: ${response.data.confianza}`)
                     $('#prediccion').text(`Predicción: ${response.data.prediccion}`)
+                    $('#id_prediccion').val(response.data.prediccion)
+
+                    $('#submitBtn1').show()
                     $('#image').html(`<img 
                                 class="imagen-base64" 
                                 src="${response.data.imagen}"
                                 width="500px"
                                 height="500px"
                                 alt="Descripción de la imagen Base64">`)
+                } else {
+                    if (response.form) {
+                        // Limpia errores previos
+                        $('.text-danger').html('');
+                        
+                        // Muestra errores específicos del formulario
+                        for (const [field, errors] of Object.entries(response.form)) {
+                            const errorHtml = errors.map(error => `<p>${error}</p>`).join('');
+                            $(`#error_${field}`).html(errorHtml);
+                        }
+    
+                    } else {
+                        Swal.fire("Error", response.message || 'Error desconocido al guardar.', "error");
+                    }
+                }
+            },
+            
+            error: function(xhr, status, error) {
+                // Manejo de Errores detallado
+                console.error("Error al enviar el formulario:", status, error);
+                
+                try {
+                    const errorData = JSON.parse(xhr.responseText);
+                    console.error("Detalles del error de Django:", errorData);
+                    
+                    // Mostrar un mensaje de error más específico
+                    const errorMessage = errorData.message || errorData.mensaje || 'Ocurrió un error en el servidor.';
+                    Swal.fire("Error en la Petición", errorMessage, "error");
+                    
+                } catch (e) {
+                    Swal.fire("Error Desconocido", "Ocurrió un error al procesar la solicitud.", "error");
+                }
+            }
+        });
+    });
+      $('#submitBtn1').on('click', function(event) {
+    
+        // Evita que el formulario se envíe de la manera tradicional
+        event.preventDefault(); 
+        
+        const $form = $('#targetForm'); 
+        const url = window.location.href;
+        
+        // 1. 🌟 CORRECCIÓN CLAVE: Usar FormData para incluir archivos 🌟
+        // Se crea un objeto FormData a partir del elemento DOM nativo ($form[0])
+        const formData = new FormData($form[0]);
+        formData.append('action', 'saveconsulta');
+
+        // 2. Obtiene el CSRF Token (aunque FormData a menudo lo incluye, es buena práctica tenerlo)
+        const csrftoken = $form.find('input[name="csrfmiddlewaretoken"]').val();
+        
+        // 3. Envía la solicitud POST usando jQuery.ajax()
+        $.ajax({
+            type: 'POST',
+            url: url,
+            
+            // 🌟 CORRECCIÓN 2: Enviar el objeto FormData
+            data: formData, 
+            
+            // 🌟 CORRECCIÓN 3: Le dice a jQuery que NO procese los datos (necesario para FormData)
+            processData: false, 
+            
+            // 🌟 CORRECCIÓN 4: Le dice a jQuery que NO establezca Content-Type 
+            // (FormData lo hace automáticamente como multipart/form-data)
+            contentType: false, 
+            
+            headers: {
+                'X-CSRFToken': csrftoken, // Incluye el CSRF token
+            },
+            dataType: 'json', 
+            
+            success: function(response) {
+                if (response.result) {
+                    Swal.fire({
+                        title: "¡Éxito!",
+                        text: response.message || "Guardado correctamente.",
+                        icon: "success", 
+                        showCancelButton: false,
+                        confirmButtonText: "Aceptar"
+                    }).then((result) => {
+                        // Redirección si se confirma el éxito
+                        if (result.isConfirmed) {
+                            location.reload()
+                        }
+                    });
                 } else {
                     if (response.form) {
                         // Limpia errores previos

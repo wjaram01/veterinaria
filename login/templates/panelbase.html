@@ -17,13 +17,16 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        function get_formModal(url, title, action, id) {
+        function get_formModal(url, title, action, id, xl=false) {
             $.ajax({
                 url: url,
                 data: { id: id , action: action },
                 type: 'GET',
                 success: function(data) {
-                    console.log(data);
+                    if(xl){
+                        $('#miModalEstandar .modal-dialog').addClass('modal-xl')
+                    }
+
                     $('#miModalEstandar .modal-body').html(data.html);
                     $('#miModalEstandarLabel').text(title);
                     var modal = new bootstrap.Modal(document.getElementById('miModalEstandar'));
@@ -104,7 +107,7 @@ function confirmarYPostear(url, id, mensajeConfirmacion, mensajeExito, action) {
                         icon: 'success'
                     }).then(() => {
                         
-                        window.location.href = "{{ request.get_full_path }}";
+                        location.reload();
                         
                     });
                 } else {
@@ -169,9 +172,9 @@ function confirmarYPostear(url, id, mensajeConfirmacion, mensajeExito, action) {
 </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-cream fixed-top " style="display:block;">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-cream fixed-top mb-4" style="display:block;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="/">
                 <img src="https://svgsilh.com/png-512/1084899.png" alt="Logo" class="me-2" style="width: 40px; height: 40px;">
                 DermaCan
             </a>
@@ -195,6 +198,23 @@ function confirmarYPostear(url, id, mensajeConfirmacion, mensajeExito, action) {
             </div>
         </div>
     </nav>
+    {% if back %}
+        <div class="container my-5 mt-5 pt-4">
+            <div class="row">
+                <div class="col-12 text-end">
+                    <a href="{{back}}" class="btn btn-secondary mb-3">
+                        <i class="fa fa-arrow-left"></i> Atras
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+     <div class="row">
+        <div class="col" style="color:white;">
+            .
+        </div>
+    </div>
+    {% endif %}
     {% block content %}
     {% endblock %}
     <div class="modal fade" id="miModalEstandar" aria-labelledby="miModalEstandarLabel" aria-hidden="true">

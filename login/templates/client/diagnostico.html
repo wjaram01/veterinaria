@@ -21,13 +21,16 @@
 {% endblock %}
 {% block content %}
     <div class="container my-5">
-        <h1 class="mb-4">Gestión de mascotas</h1>
+        <h1 class="mb-4">Diagnóstico de mascotas</h1>
         <div class="row mb-3">
             <div class="col-12">
-                <h4>Cliente: {{ cliente.persona.nombre_completo }}</h4>
+                <h4>Cliente: {{ mascota.cliente.persona.nombre_completo }}</h4>
+                <h4>{{ mascota }}</h4>
+                <h4>Raza: {{ mascota.raza }}</h4>
+
             </div>
         </div>
-        <a type="button" href="javascript:void(0)" onclick="get_formModal('{{request.path}}', 'Agregar Nuevo', 'addmascota', '{{id}}')" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#agregarModal">
+        <a type="button" href="javascript:void(0)" onclick="get_formModal('{{request.path}}', 'Agregar Nuevo', 'addconsulta', '{{id}}', xl=true)" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#agregarModal">
             <i class="fa-solid fa-plus"></i> Agregar Nuevo
         </a>
 
@@ -37,7 +40,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Nombre</th>
-                        <th>Descripción</th>
+                        <th>Fecha</th>
                         <th>Foto</th>
                         <th>Acciones</th>
                     </tr>
@@ -48,9 +51,7 @@
                         <td>{{ forloop.counter }}</td>
                         <td>{{ l.nombre }}</td>
                         <td>
-                            <p><b>Especie:</b> {{ l.especie }}</p>
-                            <p><b>Raza:</b> {{ l.raza }}</p>
-                            <p><b>Edad:</b> {{ l.edad }}</p>
+                            <p>{{ l.fecha_registro|date:"d/m/Y"}}</p>
                         </td>
                         <td>
                             {% if l.archivo %}
@@ -66,16 +67,8 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="javascript:void(0)" onclick="get_formModal('{{request.path}}', 'Editar Cliente', 'editmascota', '{{ l.id }}')" class="btn btn-warning btn-sm">
-                                <i class="fa-solid fa-pencil"></i> Editar
-                            </a>
-                            {% if not l.has_diag %}
-                            <a href="javascript:void(0)" onclick="confirmarYPostear('{{request.path}}', '{{ l.id }}', '¿Estás seguro de que deseas eliminar esta mascota?', 'Mascota eliminada con éxito.','delmascota')" class="btn btn-danger btn-sm">
+                            <a href="javascript:void(0)" onclick="confirmarYPostear('{{request.path}}', '{{ l.id }}', '¿Estás seguro de eliminar este registro?', 'Eliminado correctamente.','deldiagnostico')" class="btn btn-danger btn-sm">
                                 <i class="fa-solid fa-trash"></i> Eliminar
-                            </a>
-                            {% endif %}
-                            <a href="/clientes?action=historialmascota&id={{l.id}}" class="btn btn-primary btn-sm">
-                                <i class="fa-solid fa-clock"></i> Historial de diagnosticos
                             </a>
                         </td>
                     </tr>

@@ -5,8 +5,8 @@ from pyexpat.errors import messages
 from django.shortcuts import render
 from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.shortcuts import redirect
-from ..forms import RegistroPersonaForm, LoginForm, RegistroClienteForm, RegistroMascotaForm, PersonaForm
-from ..models import Persona, Cliente, Doctor, Mascota
+from ..forms import RegistroPersonaForm, LoginForm, RegistroClienteForm, RegistroMascotaForm, PersonaForm, ReconocimientoForm
+from ..models import Persona, Cliente, Doctor, Mascota, DiagnosticoMascota
 from django.contrib.auth import authenticate, login, get_user_model
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
@@ -14,8 +14,14 @@ from django.template import loader
 from django.forms.models import model_to_dict
 from django.core.paginator import Paginator
 from django.db.models import Q
-from veterinaria.commonviews import add_data_to_context
+from veterinaria.commonviews import add_data_to_context, get_predict
 from django.contrib import messages
+from ..loader import get_model_and_preprocessor
+from PIL import Image
+import torch
+import torch.nn.functional as F
+import base64   
+import io 
 
 
 @transaction.atomic
@@ -179,6 +185,96 @@ def view(request):
                 transaction.set_rollback(True)
                 return JsonResponse({'result': False, 'message': str(e)})
             
+        elif action == 'addconsulta':
+            try:
+                model, preprocessor, device = get_model_and_preprocessor()
+                result = None
+                image_url = None
+                if model is None:
+                    raise NameError('Modelo no definido')
+                form = ReconocimientoForm(request.POST)
+                if form.is_valid():
+                    archivo = None
+                    if 'archivo' in request.FILES:
+                           archivo = request.FILES['archivo']
+                    image_file =archivo
+                    # Abre el archivo como una imagen PIL
+                    if not image_file: raise NameError('No ha enviado una imagen')
+                    img = Image.open(image_file).convert('RGB')
+                    image_url = image_file.name # Placeholder para el nombre del archivo
+
+                    # Preprocesamiento, Inferencia, y Post-procesamiento
+                    inputs = preprocessor(images=img, return_tensors="pt").to(device)
+                    
+                    with torch.no_grad():
+                        outputs = model(**inputs)
+                    
+                    logits = outputs.logits
+                    probabilities = F.softmax(logits, dim=1)
+                    predicted_class_idx = torch.argmax(probabilities, dim=1).item()
+                    confidence_score = probabilities[0][predicted_class_idx].item()
+                    
+                    # Obtener el nombre de la clase usando el mapeo del modelo
+                    class_name = model.config.id2label[predicted_class_idx]
+
+                    image_file.seek(0) 
+                    contenido_binario = image_file.read()
+                    cadena_base64 = base64.b64encode(contenido_binario).decode('utf-8')
+                    mime_type = "image/png"
+                    
+                    
+                    result = {
+                        'prediccion': get_predict(class_name),
+                        'confianza': f'{confidence_score * 100:.2f}%',
+                        'imagen': f"data:{mime_type};base64,{cadena_base64}"
+                    }
+                    return JsonResponse({'result': True, 'message': 'Mascota', 'data': result })
+                else:
+                    transaction.set_rollback(True)
+                    return JsonResponse({'result': False, 'message': form.errors})
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                transaction.set_rollback(True)
+                return JsonResponse({'result': False, 'message': str(e)})
+            
+        elif action == 'saveconsulta':
+            try:
+                id = request.POST.get('id', None)
+                form = ReconocimientoForm(request.POST)
+                if form.is_valid():
+                    archivo = None
+                    if 'archivo' in request.FILES:
+                           archivo = request.FILES['archivo']
+                    if not archivo: raise NameError('Debe subir un archivo')
+                    mascota = Mascota.objects.get(pk=int(id))
+                    pred = request.POST.get('prediccion', None)
+                    diag = DiagnosticoMascota(
+                        mascota = mascota,
+                        fecha_registro = datetime.now(),
+                        nombre = pred,
+                        archivo = archivo
+                    )
+                    diag.save()
+                    return JsonResponse({'result': True, 'message': 'Guardado correctamente' })
+                else:
+                    transaction.set_rollback(True)
+                    return JsonResponse({'result': False, 'message': form.errors})
+            except Exception as e:
+                transaction.set_rollback(True)
+                return JsonResponse({'result': False, 'message': str(e)})
+            
+        elif action == 'deldiagnostico':
+            try:
+                id = request.POST.get('id', '')
+                diag = DiagnosticoMascota.objects.get(id=id)
+                mascota = diag.mascota.id
+                diag.delete()
+                return JsonResponse({'result': True, 'message': 'Eliminado exitosamente'})
+            except Exception as e:
+                transaction.set_rollback(True)
+                return JsonResponse({'result': False, 'message': str(e)})
+            
             
         return JsonResponse({'result': False, 'message': 'Acción no válida'})
     else:
@@ -258,7 +354,35 @@ def view(request):
                     page_number = request.GET.get('page')
                     page_obj = paginator.get_page(page_number)
                     data['page_obj'] = page_obj
+                    data['back'] = '/clientes'
                     return render(request, 'client/mascota.html', data)
+                except Exception as e:
+                    pass
+
+            elif action == 'addconsulta':
+                try:
+                    data['id'] = request.GET.get('id', '')
+                    form = ReconocimientoForm()
+                    data['form'] = form
+                    data['action'] = action
+                    template = loader.get_template('client/modal/formdiagnostico.html')
+                    return JsonResponse({'result': True, 'html': template.render(data, request)})      
+                except Exception as e:
+                    return JsonResponse({'result': False, 'message': str(e)})
+
+            elif action == 'historialmascota':
+                try:
+                    id = request.GET.get('id', '')
+                    data['id'] = id
+                    data['mascota'] = mascota = Mascota.objects.get(id=id)
+
+                    listado = DiagnosticoMascota.objects.filter(mascota=mascota)
+                    paginator = Paginator(listado, 10)
+                    page_number = request.GET.get('page')
+                    page_obj = paginator.get_page(page_number)
+                    data['page_obj'] = page_obj
+                    data['back'] = f'/clientes?action=mismascotas&id={mascota.cliente.id}'
+                    return render(request, 'client/diagnostico.html', data)
                 except Exception as e:
                     pass
                 
@@ -274,6 +398,8 @@ def view(request):
 
             if data.get('doctor'):
                 filtro &= Q(doctor=data['doctor'])
+            elif request.user.is_superuser:
+                pass
             else:
                 messages.warning(request, 'Debes ser un doctor para ver los clientes.')
                 return redirect('/')
@@ -284,4 +410,5 @@ def view(request):
             
             page_obj = paginator.get_page(page_number)
             data['page_obj'] = page_obj
+            data['back'] = '/panel'
             return render(request, 'client/view.html', data)

@@ -28,6 +28,9 @@ class Cliente(models.Model):
 
     def get_count_mascot(self):
         return Mascota.objects.filter(cliente=self).count()
+    
+    def has_mascot(self):
+        return Mascota.objects.filter(cliente=self).exists()
 
 class Doctor(models.Model):
     persona = models.OneToOneField(Persona, on_delete=models.CASCADE)
@@ -46,3 +49,14 @@ class Mascota(models.Model):
 
     def __str__(self):
         return f"Mascota: {self.nombre} ({self.especie})"
+    
+    def has_diag(self):
+        return self.diagnosticomascota_set.all().exists()
+    
+
+class DiagnosticoMascota(models.Model):
+    mascota = models.ForeignKey(Mascota, on_delete=models.CASCADE)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    nombre = models.CharField(max_length=100)
+    archivo = models.FileField(upload_to='documentos/%Y/%m/', verbose_name='Archivo adjunto', null=True, blank=True)
+

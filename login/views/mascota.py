@@ -21,7 +21,8 @@ from PIL import Image
 import torch
 import torch.nn.functional as F
 import base64   
-import io        
+import io
+
 
 @transaction.atomic
 @login_required(login_url="/")
@@ -142,6 +143,13 @@ def view(request):
                 data['action'] = 'testmodel'
                 data['back'] = '/panel'
                 return render(request, 'mascota/recon.html', data)
+            
+            elif action == 'testmodellive':
+                data['title'] = 'Reconocimiento de enfermedades'
+                data['form'] = ReconocimientoForm()
+                data['action'] = 'testmodel'
+                data['back'] = '/panel'
+                return render(request, 'mascota/reconlive.html', data)
                 
                 
             return redirect('/')

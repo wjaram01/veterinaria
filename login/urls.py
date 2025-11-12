@@ -2,7 +2,7 @@
 
 from django.urls import path
 
-from login.views import clients, home, panel, mascota, logout, config
+from login.views import clients, home, panel, mascota, logout, config, inference
 
 urlpatterns = [
     path('', home.view, name='inicio'),
@@ -12,6 +12,7 @@ urlpatterns = [
     path('clientes/', clients.view, name='clientes'),
     path('mascotas/', mascota.view, name='mascota'),
     path('config/', config.view, name='config'),
+    path('video_feed', inference.video_feed, name='video_feed'),  # Inferencia en tiempo real
 
 
     

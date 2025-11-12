@@ -1,0 +1,56 @@
+{% extends "panelbase.html" %}
+{% load static %}
+ {% block head %}
+<script>
+$(document).ready(function() {
+    
+});
+</script>
+ <style>
+    .cream-color {
+        color: #af9858ff;
+    }
+    .dark-cream-color {
+        color: #74644bff;
+    }
+    .bg-cream {
+        background-color: #ccb26cff;
+    }
+    .bg-dark-cream {
+        background-color: #695b42ff;
+    }
+    .bg-light-cream {
+        background-color: #f2e6d9ff;
+    }
+        .myShadowBorder {
+        
+        border-radius: 10px; 
+        
+        box-shadow: 0 0 20px 10px rgba(255, 255, 255, 1); 
+    }
+    .btn:hover {
+        color: black !important;
+        border-color: black !important;
+    }
+</style>
+ {% endblock %}
+{% block content %}
+<div class="pt-4 mt-4">
+    <div class="row card m-4 p-6 mt-6 p-4 bg-light-cream rounded-3">
+        <div class="col-12 text-center mt-4">
+            <div class="mx-4">
+                <h1 class="dark-cream-color" style="font-size: 2rem;">Reconocimiento de enfermedades</h1>
+                <img src="{% url 'video_feed' %}" width="640" height="480">
+            </div>
+            <div class="mx-4">
+                <p id="prediccion"><p>
+                <p id="confianza"><p>
+            </div>
+            <div class="row">
+                <div id="image"><div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -30,4 +30,5 @@ def get_modulos(data):
     if data['user'].is_superuser:
         modulos.append({'title': 'Administracion del sistema', 'descripcion': 'En esta seccion administras las configuraciones del sistema', 'url': '/config', 'img': 'images/settings.png'})
     modulos.append({'title': 'Reconocimiento', 'descripcion': 'En esta seccion se encentra la funcion de reconocimiento de enfermedades de la piel.', 'url': '/mascotas?action=testmodel', 'img': 'images/recon.jpg'})
+    modulos.append({'title': 'Reconocimiento en tiempo real', 'descripcion': 'Submódulo el cual utiliza la cámara para realizar la detección de enfermedades de la piel en la piel de un perro', 'url': '/mascotas?action=testmodellive', 'img': 'images/ecamera.png'})
     return modulos
